@@ -1,7 +1,10 @@
+-- :set -package split
 module Chatterbot where
+
 import Utilities
-import System.Random
+--import System.Random
 import Data.Char
+import Data.List.Split
 
 chatterbot :: String -> [(String, [String])] -> IO ()
 chatterbot botName botRules = do
@@ -106,8 +109,15 @@ reductionsApply _ = id
 -- Replaces a wildcard in a list with the list given as the third argument
 substitute :: Eq a => a -> [a] -> [a] -> [a]
 substitute _ _ _ = []
-{- TO BE WRITTEN -}
+substitute replaced list value = map (\i -> if i == replaced then value else i) list
 
+{- TO BE WRITTEN -}
+substitute replaced list value = map (\i -> i (++) value) (splitOn replaced list)
+
+-- Example usage:
+--result = splitOn "," "apple,banana,orange"
+
+-- Result: ["apple","banana","orange"]
 
 -- Tries to match two lists. If they match, the result consists of the sublist
 -- bound to the wildcard in the pattern list.
