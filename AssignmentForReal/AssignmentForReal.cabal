@@ -1,0 +1,71 @@
+cabal-version: 2.2
+
+-- This file has been generated from package.yaml by hpack version 0.36.0.
+--
+-- see: https://github.com/sol/hpack
+
+name:           AssignmentForReal
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/githubuser/AssignmentForReal#readme>
+homepage:       https://github.com/githubuser/AssignmentForReal#readme
+bug-reports:    https://github.com/githubuser/AssignmentForReal/issues
+author:         Author name here
+maintainer:     example@example.com
+copyright:      2024 Author name here
+license:        BSD-3-Clause
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    CHANGELOG.md
+
+source-repository head
+  type: git
+  location: https://github.com/githubuser/AssignmentForReal
+
+library
+  exposed-modules:
+      Chatterbot
+      Utilities
+  other-modules:
+      Paths_AssignmentForReal
+  autogen-modules:
+      Paths_AssignmentForReal
+  hs-source-dirs:
+      src
+  build-depends:
+      HUnit
+    , base >=4.7 && <5
+    , random
+  default-language: Haskell2010
+
+executable AssignmentForReal-exe
+  main-is: Eliza.hs
+  other-modules:
+      Paths_AssignmentForReal
+  autogen-modules:
+      Paths_AssignmentForReal
+  hs-source-dirs:
+      app
+  build-depends:
+      AssignmentForReal
+    , HUnit
+    , base >=4.7 && <5
+    , random
+  default-language: Haskell2010
+
+test-suite AssignmentForReal-test
+  type: exitcode-stdio-1.0
+  main-is: ChatterbotTest.hs
+  other-modules:
+      Paths_AssignmentForReal
+  autogen-modules:
+      Paths_AssignmentForReal
+  hs-source-dirs:
+      test
+  build-depends:
+      AssignmentForReal
+    , HUnit
+    , base >=4.7 && <5
+    , random
+  default-language: Haskell2010
