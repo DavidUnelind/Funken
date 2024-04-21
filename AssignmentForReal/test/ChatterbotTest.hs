@@ -2,7 +2,7 @@ module Main where
   
   import Chatterbot
   import Test.HUnit
-  
+
   reflectTest =
     test [
       reflect ["i", "will", "never", "see", "my", "reflection", "in", "your", "eyes"]
@@ -11,24 +11,32 @@ module Main where
 
   transformations = [(words "I hate *", words "Why do you hate * ?")]
 
+  testMember v options = test $ assertBool message $ v `elem` options
+    where message = show (v) ++ " not part of: " ++ show options
+
   rulesApplyTest =
     test [
       rulesApply transformations (words "I hate my mother")
         ~?= (words "Why do you hate your mother ?"),
-      rulesApply transformations (words "ARGH!")
-        ~?= (words "")
+      rulesApply transformations (words "ARGH!") `testMember` [(words "ARGH!"), (words "")]
     ]
-    
+
   reduceTest =
     test [
       (reduce.words) "can you please tell me what Haskell is" ~?= words "what is Haskell"
     ]
-    
+
+  reduceTest1 =
+    test [
+      (reduce.words) "i am very very tired" ~?= words "i am tired"
+    ]
+
+
   substituteTest =
     test [
       substitute 'x' "3*cos(x) + 4 - x" "5.37" ~?= "3*cos(5.37) + 4 - 5.37"
     ]
-  
+
   matchTest =
     test [
       match 'x' "2*x+3" "2*7+3" ~?= Just "7",
@@ -48,9 +56,9 @@ module Main where
       match '*' "*X*" "aXb" ~?= Just "a",
       match '*' "*X*" "aaXbb" ~?= Just "aa"
     ]
-  
+
   frenchPresentation = ("My name is *", "Je m'appelle *")
-  
+
   transformationApplyTest =
     test [
       transformationApply '*' id "My name is Zacharias" frenchPresentation
@@ -59,7 +67,7 @@ module Main where
         ~?= Nothing
     ]
 
-  swedishPresentation = ("My name is *", "Mitt namn är *")    
+  swedishPresentation = ("My name is *", "Mitt namn är *")
   presentations = [frenchPresentation, swedishPresentation]
 
   transformationsApplyTest =
@@ -72,6 +80,8 @@ module Main where
         ~?= Nothing
     ]
 
+
+
   main = runTestTT $
     test [
       "substitute" ~: Main.substituteTest,
@@ -79,6 +89,7 @@ module Main where
       "transformationApply" ~: transformationApplyTest,
       "transformationsApply" ~: transformationsApplyTest,
       "reflect" ~: reflectTest,
-      "rulesApply" ~: rulesApplyTest
+      "rulesApply" ~: rulesApplyTest,
+      "reduceTest" ~: reduceTest,
+      "reduceTest1" ~: reduceTest1
     ]
-

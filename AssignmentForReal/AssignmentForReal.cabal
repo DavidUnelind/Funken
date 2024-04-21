@@ -37,6 +37,7 @@ library
       HUnit
     , base >=4.7 && <5
     , random
+    , split >=0.2 && <1
   default-language: Haskell2010
 
 executable AssignmentForReal-exe
@@ -52,6 +53,7 @@ executable AssignmentForReal-exe
     , HUnit
     , base >=4.7 && <5
     , random
+    , split >=0.2 && <1
   default-language: Haskell2010
 
 test-suite AssignmentForReal-test
@@ -68,4 +70,5 @@ test-suite AssignmentForReal-test
     , HUnit
     , base >=4.7 && <5
     , random
+    , split >=0.2 && <1
   default-language: Haskell2010

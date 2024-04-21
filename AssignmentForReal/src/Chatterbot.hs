@@ -3,6 +3,7 @@ import Utilities
 import System.Random
 import Data.Char
 import Data.List.Split
+import Data.Maybe
 
 chatterbot :: String -> [(String, [String])] -> IO ()
 chatterbot botName botRules = do
@@ -27,16 +28,16 @@ type BotBrain = [(Phrase, [Phrase])]
 --------------------------------------------------------
 
 stateOfMind :: BotBrain -> IO (Phrase -> Phrase)
-{- TO BE WRITTEN -}
-stateOfMind _ = return id
+stateOfMind brain = do
+  r <- randomIO :: IO Float
+  return (rulesApply ((map . map2) (id, pick r) brain)) --Samuel??? Help
+
 
 rulesApply :: [PhrasePair] -> Phrase -> Phrase
-{- TO BE WRITTEN -}
-rulesApply _ = id
+rulesApply transformations p = try (transformationsApply "*" reflect transformations) p
 
 reflect :: Phrase -> Phrase
-{- TO BE WRITTEN -}
-reflect = id
+reflect = map (\i -> fromJust (orElse (lookup i reflections) (Just i)))
 
 reflections =
   [ ("am",     "are"),
@@ -70,8 +71,7 @@ prepare :: String -> Phrase
 prepare = reduce . words . map toLower . filter (not . flip elem ".,:;*!#%&|") 
 
 rulesCompile :: [(String, [String])] -> BotBrain
-{- TO BE WRITTEN -}
-rulesCompile _ = []
+rulesCompile content = map (\i -> (words (fst i), map (\j -> words (j)) (snd i))) content
 
 
 --------------------------------------
@@ -96,8 +96,9 @@ reduce :: Phrase -> Phrase
 reduce = reductionsApply reductions
 
 reductionsApply :: [PhrasePair] -> Phrase -> Phrase
-{- TO BE WRITTEN -}
-reductionsApply _ = id
+reductionsApply pair p 
+  | isJust (transformationsApply "*" id pair p) = reductionsApply pair (fromJust (transformationsApply "*" id pair p))
+  | otherwise = p
 
 
 -------------------------------------------------------
@@ -107,35 +108,34 @@ reductionsApply _ = id
 -- Replaces a wildcard in a list with the list given as the third argument
 substitute :: Eq a => a -> [a] -> [a] -> [a]
 substitute _ [] _ = []
-substitute replaced (x:xs) value
-    | x == replaced = value ++ substitute replaced xs value
-    | otherwise     = x : substitute replaced xs value   
+substitute wc (x:xs) value
+    | x == wc = value ++ substitute wc xs value
+    | otherwise     = x : substitute wc xs value   
 
 
 -- Tries to match two lists. If they match, the result consists of the sublist
 -- bound to the wildcard in the pattern list.
 match :: Eq a => a -> [a] -> [a] -> Maybe [a]
+match _ [] [] = Just []
 match _ [] _ = Nothing
 match _ _ [] = Nothing
-match wc xs list 
-    | not (elem wc xs) && xs == list = Just xs
+match wc xs list
+    | not (elem wc xs) && xs == list = Just []
     | not (elem wc xs) && xs /= list = Nothing
     | wc == head xs = orElse (singleWildcardMatch xs list) (longerWildcardMatch xs list)
-    | wc /= head xs = match wc (tail xs) (tail list)
+    | wc /= head xs && head xs == head list = match wc (tail xs) (tail list)
     | otherwise = Nothing
 
 
 -- Helper function to match
 singleWildcardMatch, longerWildcardMatch :: Eq a => [a] -> [a] -> Maybe [a]
 singleWildcardMatch (wc:ps) (x:xs)
-    | ps == xs = Just [x]
+    | isJust (match wc ps xs) = Just [x] -- varför?????????
     | otherwise = Nothing
 
 longerWildcardMatch _ (x:[]) = Nothing
 longerWildcardMatch (wc:[]) xs = Just xs
-longerWildcardMatch ps xs
-    | last ps == last xs = longerWildcardMatch (init ps) (init xs)
-    | otherwise = Nothing
+longerWildcardMatch ps xs = mmap ((head xs):) (match (head ps) (ps) (tail xs)) -- varför?? Samuel hjälp
 
 
 -- Test cases --------------------
@@ -158,13 +158,18 @@ matchCheck = matchTest == Just testSubstitutions
 
 -- Applying a single pattern
 transformationApply :: Eq a => a -> ([a] -> [a]) -> [a] -> ([a], [a]) -> Maybe [a]
-transformationApply _ _ _ _ = Nothing
-{- TO BE WRITTEN -}
+transformationApply wc f input (original, translated)
+  | isJust (match wc original input) = mmap (substitute wc translated . f) (match wc original input)
+  | otherwise = Nothing
+
+-- = function (substitute wc translated (match wc original input))
 
 
 -- Applying a list of patterns until one succeeds
 transformationsApply :: Eq a => a -> ([a] -> [a]) -> [([a], [a])] -> [a] -> Maybe [a]
-transformationsApply _ _ _ _ = Nothing
-{- TO BE WRITTEN -}
+transformationsApply _ _ [] _ = Nothing
+transformationsApply wc f ((original, translated):xs) input
+  | isJust (match wc original input) = mmap (substitute wc translated . f) (match wc original input)
+  | otherwise = transformationsApply wc f xs input
 
 
