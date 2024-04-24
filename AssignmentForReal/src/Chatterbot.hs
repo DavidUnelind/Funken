@@ -33,9 +33,8 @@ stateOfMind brain = do
   r <- randomIO :: IO Float
   return (rulesApply ((map . map2) (id, pick r) brain))
 
-
 rulesApply :: [PhrasePair] -> Phrase -> Phrase
-rulesApply transformations p = try (transformationsApply "*" reflect transformations) p
+rulesApply transformations = try (transformationsApply "*" reflect transformations)
 
 reflect :: Phrase -> Phrase
 reflect = map (\i -> fromJust (orElse (lookup i reflections) (Just i)))
@@ -72,7 +71,7 @@ prepare :: String -> Phrase
 prepare = reduce . words . map toLower . filter (not . flip elem ".,:;*!#%&|") 
 
 rulesCompile :: [(String, [String])] -> BotBrain
-rulesCompile content = map (\i -> (words (fst i), map (\j -> words (j)) (snd i))) content
+rulesCompile = map (\i -> (words (fst i), map (\j -> words (j)) (snd i)))
 
 
 --------------------------------------
@@ -129,11 +128,12 @@ match wc xs list
 
 
 -- Helper function to match
-singleWildcardMatch, longerWildcardMatch :: Eq a => [a] -> [a] -> Maybe [a]
+singleWildcardMatch :: Eq a => [a] -> [a] -> Maybe [a]
 singleWildcardMatch (wc:ps) (x:xs)
     | isJust (match wc ps xs) = Just [x]
     | otherwise = Nothing
 
+longerWildcardMatch :: Eq a => [a] -> [a] -> Maybe [a]
 longerWildcardMatch _ (x:[]) = Nothing
 longerWildcardMatch (wc:[]) xs = Just xs
 longerWildcardMatch ps xs = mmap ((head xs):) (match (head ps) (ps) (tail xs)) 
