@@ -1,3 +1,4 @@
+-- David Unelind & Johanna Fridh
 module Chatterbot where
 import Utilities
 import System.Random
@@ -30,7 +31,7 @@ type BotBrain = [(Phrase, [Phrase])]
 stateOfMind :: BotBrain -> IO (Phrase -> Phrase)
 stateOfMind brain = do
   r <- randomIO :: IO Float
-  return (rulesApply ((map . map2) (id, pick r) brain)) --Samuel??? Help
+  return (rulesApply ((map . map2) (id, pick r) brain))
 
 
 rulesApply :: [PhrasePair] -> Phrase -> Phrase
@@ -130,12 +131,12 @@ match wc xs list
 -- Helper function to match
 singleWildcardMatch, longerWildcardMatch :: Eq a => [a] -> [a] -> Maybe [a]
 singleWildcardMatch (wc:ps) (x:xs)
-    | isJust (match wc ps xs) = Just [x] -- varför?????????
+    | isJust (match wc ps xs) = Just [x]
     | otherwise = Nothing
 
 longerWildcardMatch _ (x:[]) = Nothing
 longerWildcardMatch (wc:[]) xs = Just xs
-longerWildcardMatch ps xs = mmap ((head xs):) (match (head ps) (ps) (tail xs)) -- varför?? Samuel hjälp
+longerWildcardMatch ps xs = mmap ((head xs):) (match (head ps) (ps) (tail xs)) 
 
 
 -- Test cases --------------------
