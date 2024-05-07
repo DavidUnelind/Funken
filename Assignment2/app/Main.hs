@@ -1,3 +1,4 @@
+--Johanna Fridh (jo7566fr-s) och David Unelind (da8387un-s)
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 module Main (main) where
 
@@ -24,11 +25,14 @@ similarityScore s1 s2 = uncurry calcScore (head (optAlignments s1 s2))
 similarityChecker :: String -> String -> Int -> Int
 similarityChecker [] _ nbr = nbr
 similarityChecker _ [] nbr = nbr
-similarityChecker (x:s1) (y:s2) nbr 
-    | x == y = similarityChecker s1 s2 (nbr + scoreMatch)
-    | x == '-' || y == '-' = similarityChecker s1 s2 (nbr + scoreSpace)
-    | x /= y = similarityChecker s1 s2 (nbr + scoreMismatch)
-    | otherwise = nbr
+similarityChecker (x:s1) (y:s2) nbr = similarityChecker s1 s2 (nbr + score x y)
+
+score :: Char -> Char -> Int
+score x '-' = scoreSpace
+score '-' y = scoreSpace
+score x y
+    | x == y    = scoreMatch
+    | otherwise = scoreMismatch
 
 calcScore :: String -> String -> Int
 calcScore s1 s2 = similarityChecker s1 s2 0
@@ -65,3 +69,34 @@ outputOptAlignments s1 s2 = do
         optList = optAlignments s1 s2
         x = length optList
         formatStrings (a, b) = a ++ "\n" ++ b ++ "\n"
+
+
+newOptAlignments :: String -> String -> ([AlignmentType], Int)
+newOptAlignments xs ys = (alignments, (length alignments))
+    where
+        alignments = map
+                        (pairApply reverse)
+                        (snd $ alignment (length xs) (length ys))
+        pairApply f (a, b) = (f a, f b)
+
+        alignment :: Int -> Int -> (Int, [AlignmentType])
+        alignment i j = table !! i !! j
+
+        table :: [[(Int, [AlignmentType])]]
+        table = [[entry i j | j <- [0..]] | i <- [0..]]
+
+        entry :: Int -> Int -> (Int, [AlignmentType])
+        entry 0 0 = (0, [([], [])])
+        entry i 0 = (i * scoreSpace, [(take i xs, replicate i '-')])
+        entry 0 j = (j * scoreSpace, [(replicate j '-', take j ys)])
+        entry i j = (fst $ head best, concat [snd b | b <- best])
+            where 
+                (s1, a1) = alignment (i - 1) (j - 1)
+                (s2, a2) = alignment (i - 1)  j
+                (s3, a3) = alignment  i      (j - 1)
+                x = xs !! (i - 1)
+                y = ys !! (j - 1)
+                best = maximaBy fst $ [
+                    (s1 + score x y,   attachHeads x y   a1),
+                    (s2 + score x '-', attachHeads x '-' a2),
+                    (s3 + score '-' y, attachHeads '-' y a3)]
