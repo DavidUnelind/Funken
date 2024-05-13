@@ -3,7 +3,6 @@ module Chatterbot where
 import Utilities
 import System.Random
 import Data.Char
-import Data.List.Split
 import Data.Maybe
 
 chatterbot :: String -> [(String, [String])] -> IO ()
