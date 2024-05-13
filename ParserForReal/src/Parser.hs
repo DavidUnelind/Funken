@@ -11,7 +11,7 @@ type T a = Parser a
 err :: String -> Parser a
 err message cs = error (message++" near "++cs++"\n")
 
-iter :: Parser a -> Parser [a]  
+iter :: Parser a -> Parser [a]
 iter m = m # iter m >-> cons ! return [] 
 
 cons(a, b) = a:b
@@ -23,19 +23,20 @@ m -# n = error "-# not implemented"
 m #- n = error "#- not implemented"
 
 spaces :: Parser String
-spaces =  error "spaces not implemented"
+spaces = iter ((?) char isSpace)
 
 token :: Parser a -> Parser a
 token m = m #- spaces
 
 letter :: Parser Char
-letter =  error "letter not implemented"
+letter = (?) char isAlpha
 
 word :: Parser String
 word = token (letter # iter letter >-> cons)
 
 chars :: Int -> Parser String
-chars n =  error "chars not implemented"
+chars 0 = return []
+chars n = char # chars (n-1) >-> cons
 
 accept :: String -> Parser String
 accept w = (token (chars (length w))) ? (==w)
