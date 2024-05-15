@@ -17,10 +17,22 @@ iter m = m # iter m >-> cons ! return []
 cons(a, b) = a:b
 
 (-#) :: Parser a -> Parser b -> Parser b
-m -# n = error "-# not implemented"
+(m -# n) cs = 
+    case m cs of
+    Nothing -> Nothing
+    Just(a, cs') -> 
+        case n cs' of
+        Nothing -> Nothing
+        Just(b, cs'') -> Just(b, cs'')
 
 (#-) :: Parser a -> Parser b -> Parser a
-m #- n = error "#- not implemented"
+(m #- n) cs = 
+    case m cs of
+    Nothing -> Nothing
+    Just(a, cs') -> 
+        case n cs' of
+        Nothing -> Nothing
+        Just(b, cs'') -> Just(a, cs'')
 
 spaces :: Parser String
 spaces = iter ((?) char isSpace)
@@ -42,7 +54,7 @@ accept :: String -> Parser String
 accept w = (token (chars (length w))) ? (==w)
 
 require :: String -> Parser String
-require w  = error "require not implemented"
+require w = accept w ! err w
 
 lit :: Char -> Parser Char
 lit c = token char ? (==c)
