@@ -65,11 +65,22 @@ exec (Write e : statements) d input =
     in outputValue : exec statements d input
 exec (Comment _ : statements) d input = exec statements d input
 
-instance Parse Statement where
-  parse = assignment ! skip ! begin ! ifStatement ! while ! readStatement ! write ! comment
-  toString = error "Statement.toString not implemented"
-
 tab n = replicate n '\t'
 
 ts :: Int -> Statement -> String
-ts n (Assignemnt v e) = tab n ++ v ++ " := " ++ Expr.toString e ++ ";\n"
+ts n (Assignment v e) = tab n ++ v ++ " := " ++ Expr.toString e ++ ";\n"
+ts n Skip             = tab n ++ "skip;\n"
+ts n (Begin ss)       = tab n ++ "begin\n" ++ concatMap (ts (n + 1)) ss ++
+                         tab n ++ "end\n"
+ts n (If e s1 s2)     = tab n ++ "if " ++ Expr.toString e ++ " then\n" ++
+                         ts (n + 1) s1 ++ tab n ++ "else\n" ++
+                         ts (n + 1) s2
+ts n (While e s)      = tab n ++ "while " ++ Expr.toString e ++ " do\n" ++
+                         ts (n + 1) s
+ts n (Read v)         = tab n ++ "read " ++ v ++ ";\n"
+ts n (Write e)        = tab n ++ "write " ++ Expr.toString e ++ ";\n"
+ts n (Comment s)      = tab n ++ "-- " ++ s ++ "\n"
+
+instance Parse Statement where
+    parse = assignment ! skip ! begin ! ifStatement ! while ! readStatement ! write ! comment
+    toString = ts 0
