@@ -81,4 +81,5 @@ s4 = "\
 
 p4 = fromString s4
 
+
 rp4 = Program.exec p4 [4,4]

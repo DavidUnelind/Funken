@@ -44,9 +44,7 @@ comment = accept "--" -# iter (char ? (/= '\n')) #- require "\n" >-> Comment
 
 exec :: [T] -> Dictionary.T String Integer -> [Integer] -> [Integer]
 exec [] _ output = output
-exec (Assignment v e : statements) d input =
-    let newD = Dictionary.insert (v, Expr.value e d) d
-    in exec statements newD input
+exec (Assignment v e : statements) d input = exec statements (Dictionary.insert (v, Expr.value e d) d) input
 exec (Skip : statements) d input = exec statements d input
 exec (Begin newS : statements) d input = exec (newS ++ statements) d input
 exec (If cond thenStmts elseStmts: stmts) d input = 
