@@ -43,11 +43,33 @@ comment :: Parser Statement
 comment = accept "--" -# iter (char ? (/= '\n')) #- require "\n" >-> Comment
 
 exec :: [T] -> Dictionary.T String Integer -> [Integer] -> [Integer]
-exec (If cond thenStmts elseStmts: stmts) dict input = 
-    if (Expr.value cond dict)>0 
-    then exec (thenStmts: stmts) dict input
-    else exec (elseStmts: stmts) dict input
+exec [] _ output = output
+exec (Assignment v e : statements) d input =
+    let newD = Dictionary.insert (v, Expr.value e d) d
+    in exec statements newD input
+exec (Skip : statements) d input = exec statements d input
+exec (Begin newS : statements) d input = exec (newS ++ statements) d input
+exec (If cond thenStmts elseStmts: stmts) d input = 
+    if (Expr.value cond d)>0 
+    then exec (thenStmts: stmts) d input
+    else exec (elseStmts: stmts) d input
+exec (While cond body : statements) d input =
+    if Expr.value cond d > 0
+    then exec (body : While cond body : statements) d input
+    else exec statements d input
+exec (Read v : statements) d (i:input) =
+    let newD = Dictionary.insert (v, i) d
+    in exec statements newD input
+exec (Write e : statements) d input =
+    let outputValue = Expr.value e d
+    in outputValue : exec statements d input
+exec (Comment _ : statements) d input = exec statements d input
 
 instance Parse Statement where
   parse = assignment ! skip ! begin ! ifStatement ! while ! readStatement ! write ! comment
   toString = error "Statement.toString not implemented"
+
+tab n = replicate n '\t'
+
+ts :: Int -> Statement -> String
+ts n (Assignemnt v e) = tab n ++ v ++ " := " ++ Expr.toString e ++ ";\n"

@@ -28,8 +28,7 @@ import Parser hiding (T)
 import qualified Dictionary
 
 data Expr = Num Integer | Var String | Add Expr Expr 
-       | Sub Expr Expr | Mul Expr Expr | Div Expr Expr
-         deriving Show
+       | Sub Expr Expr | Mul Expr Expr | Div Expr Expr deriving Show
 
 type T = Expr
 
