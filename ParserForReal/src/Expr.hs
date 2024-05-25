@@ -1,28 +1,5 @@
 module Expr(Expr, T, parse, fromString, value, toString) where
 
-{-
-   An expression of type Expr is a representation of an arithmetic expression 
-   with integer constants and variables. A variable is a string of upper- 
-   and lower case letters. The following functions are exported
-   
-   parse :: Parser Expr
-   fromString :: String -> Expr
-   toString :: Expr -> String
-   value :: Expr -> Dictionary.T String Int -> Int
-   
-   parse is a parser for expressions as defined by the module Parser.
-   It is suitable for use in parsers for languages containing expressions
-   as a sublanguage.
-   
-   fromString expects its argument to contain an expression and returns the 
-   corresponding Expr. 
-  
-   toString converts an expression to a string without unneccessary 
-   parentheses and such that fromString (toString e) = e.
-  
-   value e env evaluates e in an environment env that is represented by a
-   Dictionary.T Int.  
--}
 import Prelude hiding (return, fail)
 import Parser hiding (T)
 import qualified Dictionary
@@ -34,7 +11,7 @@ type T = Expr
 
 var, num, factor, term, expr, pow :: Parser Expr
 
-factor', term', expr' :: Expr -> Parser Expr
+term', expr' :: Expr -> Parser Expr
 
 var = word >-> Var
 
@@ -50,19 +27,15 @@ bldOp e (oper,e') = oper e e'
 
 powOp = lit '^' >-> (\_ -> Pow)
 
-pow = num !
-      var !
-      lit '(' -# expr #- lit ')' !
-      err "illegal factor"
-
-factor' e = powOp # pow >-> bldOp e #> factor' ! return e
-factor = pow #> factor'
+factor = num ! var ! lit '(' -# expr #- lit ')' ! err "illegal factor"
 
 term' e = mulOp # factor >-> bldOp e #> term' ! return e
-term = factor #> term'
+term = pow #> term'
        
 expr' e = addOp # term >-> bldOp e #> expr' ! return e
 expr = term #> expr'
+
+pow = factor # (powOp # pow) >-> (\(base, (op, exponent)) -> Pow base exponent) ! factor
 
 parens cond str = if cond then "(" ++ str ++ ")" else str
 
