@@ -12,7 +12,6 @@ data Statement =
     | While Expr.T Statement
     | Read String
     | Write Expr.T
-    | Comment String
     deriving Show
 
 assignment :: Parser Statement
@@ -39,9 +38,6 @@ readStatement = accept "read" -# word #- require ";" >-> Read
 write :: Parser Statement
 write = accept "write" -# Expr.parse #- require ";" >-> Write
 
-comment :: Parser Statement
-comment = accept "--" -# iter (char ? (/= '\n')) #- require "\n" >-> Comment
-
 exec :: [T] -> Dictionary.T String Integer -> [Integer] -> [Integer]
 exec [] _ output = output
 exec (Assignment v e : statements) d input = exec statements (Dictionary.insert (v, Expr.value e d) d) input
@@ -61,7 +57,6 @@ exec (Read v : statements) d (i:input) =
 exec (Write e : statements) d input =
     let outputValue = Expr.value e d
     in outputValue : exec statements d input
-exec (Comment _ : statements) d input = exec statements d input
 
 tab n = replicate n '\t'
 
@@ -77,8 +72,7 @@ ts n (While e s)      = tab n ++ "while " ++ Expr.toString e ++ " do\n" ++
                          ts (n + 1) s
 ts n (Read v)         = tab n ++ "read " ++ v ++ ";\n"
 ts n (Write e)        = tab n ++ "write " ++ Expr.toString e ++ ";\n"
-ts n (Comment s)      = tab n ++ "-- " ++ s ++ "\n"
 
 instance Parse Statement where
-    parse = assignment ! skip ! begin ! ifStatement ! while ! readStatement ! write ! comment
+    parse = assignment ! skip ! begin ! ifStatement ! while ! readStatement ! write
     toString = ts 0

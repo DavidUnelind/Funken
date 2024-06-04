@@ -9,6 +9,11 @@ p0 = fromString  ("\
 \read k;\
 \read n;\
 \m := 1;\
+\read a;\
+\read -- input a value\
+\-- into variable b:\
+\b;\
+\s := 3;\
 \while n-m do\
 \  begin\
 \    if m - m/k*k then\
@@ -83,3 +88,14 @@ p4 = fromString s4
 
 
 rp4 = Program.exec p4 [4,4]
+
+s5 = "\
+\read a;\
+\read -- input a value\n\
+\-- into variable b:\n\
+\b;\
+\s := 3;"
+
+p5 = fromString s5
+
+rp5 = Program.exec p5 [4,4]

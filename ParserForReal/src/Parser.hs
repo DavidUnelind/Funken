@@ -1,6 +1,6 @@
 module Parser(module CoreParser, T, digit, digitVal, chars, letter, err,
               lit, number, iter, accept, require, token,
-              spaces, word, (-#), (#-)) where
+              spaces, word, blankspace, (-#), (#-)) where
 import Prelude hiding (return, fail)
 import Data.Char
 import CoreParser
@@ -14,31 +14,20 @@ err message cs = error (message++" near "++cs++"\n")
 iter :: Parser a -> Parser [a]
 iter m = m # iter m >-> cons ! return [] 
 
+cons :: (a, [a]) -> [a]
 cons(a, b) = a:b
 
 (-#) :: Parser a -> Parser b -> Parser b
-(m -# n) cs = 
-    case m cs of
-    Nothing -> Nothing
-    Just(a, cs') -> 
-        case n cs' of
-        Nothing -> Nothing
-        Just(b, cs'') -> Just(b, cs'')
+m -# n = m # n >-> snd
 
 (#-) :: Parser a -> Parser b -> Parser a
-(m #- n) cs = 
-    case m cs of
-    Nothing -> Nothing
-    Just(a, cs') -> 
-        case n cs' of
-        Nothing -> Nothing
-        Just(b, cs'') -> Just(a, cs'')
+m #- n = m # n >-> fst
 
 spaces :: Parser String
 spaces = iter ((?) char isSpace)
 
 token :: Parser a -> Parser a
-token m = m #- spaces
+token m = m #- blankspace
 
 letter :: Parser Char
 letter = (?) char isAlpha
@@ -71,3 +60,8 @@ number' n = digitVal #> (\ d -> number' (10*n+d))
 number :: Parser Integer
 number = token (digitVal #> number')
 
+comment :: Parser String
+comment = accept "--" -# iter (char ? ('\n' /=)) #- require "\n"
+
+blankspace :: Parser String
+blankspace = (iter (spaces -# comment) >-> concat) -# spaces
